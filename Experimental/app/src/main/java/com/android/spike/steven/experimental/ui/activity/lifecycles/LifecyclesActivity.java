@@ -1,22 +1,33 @@
 package com.android.spike.steven.experimental.ui.activity.lifecycles;
 
+import android.arch.lifecycle.LiveData;
 import android.arch.lifecycle.Observer;
+import android.arch.lifecycle.ViewModelProviders;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
+import android.view.View;
+import android.widget.Button;
+import android.widget.EditText;
+import android.widget.QuickContactBadge;
+import android.widget.TextView;
 
 import com.android.spike.steven.experimental.R;
+import com.android.spike.steven.experimental.archcomps.ObserveUnlessInterface;
 import com.android.spike.steven.experimental.archcomps.PremeraMutableLiveData;
 
 public class LifecyclesActivity extends AppCompatActivity {
 
-    PremeraMutableLiveData<String> pmld = new PremeraMutableLiveData<>();
+    Button updateButton;
+    LifecyclesViewModel viewModel;
+    EditText firstNameInputField;
+    TextView firstNameField;
 
-    Observer<String> observer = new Observer<String>() {
+    Observer<String> firstNameObserver = new Observer<String>() {
         @Override
-        public void onChanged(@Nullable String s) {
-            Log.d("TRACE_APP", "onChanged: " + s);
+        public void onChanged(@Nullable String firstName) {
+            firstNameField.setText(firstName);
         }
     };
 
@@ -28,10 +39,17 @@ public class LifecyclesActivity extends AppCompatActivity {
         CustomLifecycleObserver customLifecycleObserver = new CustomLifecycleObserver();
         getLifecycle().addObserver(customLifecycleObserver);
 
-        pmld.observe(this, observer, new PremeraMutableLiveData.ObserveUnlessInterface() {
+        viewModel = ViewModelProviders.of(this).get(LifecyclesViewModel.class);
+        viewModel.firstNameField().observe(this, firstNameObserver);
+
+        firstNameInputField = findViewById(R.id.firstname_input);
+        firstNameField = findViewById(R.id.firstname_output);
+
+        updateButton = findViewById(R.id.update_button);
+        updateButton.setOnClickListener(new View.OnClickListener() {
             @Override
-            public <String> boolean unlessTrue(String result) {
-                return result == "Steven";
+            public void onClick(View v) {
+                viewModel.updateFirstName(firstNameInputField.getText().toString());
             }
         });
     }
